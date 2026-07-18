@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Add Assignment · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Assignment</h1>
+        <p class="page-subtitle">Attach it to a subject and set a deadline.</p>
+    </div>
+    <a href="{{ url_for('tasks') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Assignments</span>
+    </a>
+</div>
+
+{% if not subjects %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fa-solid fa-layer-group"></i></div>
+    <h3>You need a subject first</h3>
+    <p>Assignments belong to a subject. Add one, then come back here.</p>
+    <a href="{{ url_for('add_subject') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Subject</span>
+    </a>
+</div>
+{% else %}
+<div class="form-card">
+    <form method="POST" action="{{ url_for('add_task') }}" novalidate>
+        <div class="form-group">
+            <label for="subject_id">Subject</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-layer-group"></i>
+                <select id="subject_id" name="subject_id" required>
+                    <option value="" disabled {% if not subject_id %}selected{% endif %}>Choose a subject</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if subject_id|string == subject.id|string %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-heading"></i>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="e.g. Problem Set 3"
+                    value="{{ title or '' }}"
+                    maxlength="120"
+                    required
+                    autofocus
+                >
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description <span class="optional-tag">optional</span></label>
+            <textarea
+                id="description"
+                name="description"
+                rows="3"
+                placeholder="Any details worth remembering..."
+            >{{ description or '' }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="deadline">Deadline</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-calendar"></i>
+                    <input
+                        type="date"
+                        id="deadline"
+                        name="deadline"
+                        value="{{ deadline or '' }}"
+                        min="{{ today }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-flag"></i>
+                    <select id="priority" name="priority" required>
+                        <option value="" disabled {% if not priority %}selected{% endif %}>Choose priority</option>
+                        {% for p in priorities %}
+                        <option value="{{ p }}" {% if priority == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-spinner"></i>
+                <select id="status" name="status" required>
+                    {% for s in statuses %}
+                    <option value="{{ s }}" {% if status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i>
+                <span>Add Assignment</span>
+            </button>
+            <a href="{{ url_for('tasks') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

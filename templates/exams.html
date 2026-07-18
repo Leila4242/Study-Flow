@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Exams · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Exams</h1>
+        <p class="page-subtitle">Track upcoming exams with a clear countdown and timeline.</p>
+    </div>
+    <a href="{{ url_for('add_exam') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Exam</span>
+    </a>
+</div>
+
+<h2 class="section-heading">Incoming <span class="section-heading-count">{{ upcoming_exams|length }}</span></h2>
+
+{% if upcoming_exams %}
+<div class="exam-grid">
+    {% for exam in upcoming_exams %}
+    <div class="exam-card">
+        <div class="exam-card-accent" style="background-color: {{ exam.subject_color }};"></div>
+
+        <div class="exam-card-body">
+            <div class="exam-card-top">
+                <span class="badge" style="background-color: {{ exam.subject_color }}22; color: {{ exam.subject_color }};">
+                    {{ exam.subject_name }}
+                </span>
+                <span class="countdown-badge countdown-badge-{{ exam.countdown_status }} countdown-live" data-exam-date="{{ exam.exam_date }}">
+                    {{ exam.countdown_display }}
+                </span>
+            </div>
+
+            <h3 class="exam-title">{{ exam.title }}</h3>
+
+            <div class="exam-meta">
+                <span><i class="fa-solid fa-calendar"></i> {{ exam.exam_date }}</span>
+                {% if exam.location %}
+                <span><i class="fa-solid fa-location-dot"></i> {{ exam.location }}</span>
+                {% endif %}
+            </div>
+
+            {% if exam.notes %}
+            <p class="exam-notes">{{ exam.notes }}</p>
+            {% endif %}
+        </div>
+
+        <div class="exam-card-actions">
+            <a href="{{ url_for('edit_exam', exam_id=exam.id) }}" class="icon-btn" aria-label="Edit exam">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="POST" action="{{ url_for('delete_exam_route', exam_id=exam.id) }}" class="delete-form">
+                <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete exam"
+                    data-confirm="Delete &ldquo;{{ exam.title }}&rdquo;? This can't be undone.">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fa-solid fa-file-pen"></i></div>
+    <h3>No exams scheduled</h3>
+    <p>Schedule one so you can keep track of important dates.</p>
+    <a href="{{ url_for('add_exam') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Exam</span>
+    </a>
+</div>
+{% endif %}
+
+{% if past_exams %}
+<h2 class="section-heading section-heading-past">Past <span class="section-heading-count">{{ past_exams|length }}</span></h2>
+
+<div class="exam-grid">
+    {% for exam in past_exams %}
+    <div class="exam-card exam-card-past">
+        <div class="exam-card-accent" style="background-color: {{ exam.subject_color }};"></div>
+
+        <div class="exam-card-body">
+            <div class="exam-card-top">
+                <span class="badge" style="background-color: {{ exam.subject_color }}22; color: {{ exam.subject_color }};">
+                    {{ exam.subject_name }}
+                </span>
+                <span class="countdown-badge countdown-badge-past">{{ exam.countdown_display }}</span>
+            </div>
+
+            <h3 class="exam-title">{{ exam.title }}</h3>
+
+            <div class="exam-meta">
+                <span><i class="fa-solid fa-calendar"></i> {{ exam.exam_date }}</span>
+                {% if exam.location %}
+                <span><i class="fa-solid fa-location-dot"></i> {{ exam.location }}</span>
+                {% endif %}
+            </div>
+
+            {% if exam.notes %}
+            <p class="exam-notes">{{ exam.notes }}</p>
+            {% endif %}
+        </div>
+
+        <div class="exam-card-actions">
+            <a href="{{ url_for('edit_exam', exam_id=exam.id) }}" class="icon-btn" aria-label="Edit exam">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="POST" action="{{ url_for('delete_exam_route', exam_id=exam.id) }}" class="delete-form">
+                <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete exam"
+                    data-confirm="Delete &ldquo;{{ exam.title }}&rdquo;? This can't be undone.">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

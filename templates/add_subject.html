@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Add Subject · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Subject</h1>
+        <p class="page-subtitle">Give it a name, an optional teacher, and a color.</p>
+    </div>
+    <a href="{{ url_for('subjects') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Subjects</span>
+    </a>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="{{ url_for('add_subject') }}" novalidate>
+        <div class="form-group">
+            <label for="name">Subject name</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-book"></i>
+                <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="e.g. Data Structures"
+                    value="{{ name or '' }}"
+                    maxlength="80"
+                    required
+                    autofocus
+                >
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="teacher">Teacher <span class="optional-tag">optional</span></label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <input
+                    type="text"
+                    id="teacher"
+                    name="teacher"
+                    placeholder="e.g. Dr. Alvarez"
+                    value="{{ teacher or '' }}"
+                >
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Color</label>
+            <input type="hidden" id="color" name="color" value="{{ color or palette[0] }}">
+            <div class="color-swatch-picker" id="colorPicker">
+                {% for swatch in palette %}
+                <button
+                    type="button"
+                    class="color-swatch{% if (color or palette[0])|lower == swatch|lower %} selected{% endif %}"
+                    style="background-color: {{ swatch }};"
+                    data-color="{{ swatch }}"
+                    aria-label="Choose color {{ swatch }}"
+                ></button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i>
+                <span>Add Subject</span>
+            </button>
+            <a href="{{ url_for('subjects') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

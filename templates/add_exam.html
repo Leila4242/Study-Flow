@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Add Exam · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Add Exam</h1>
+        <p class="page-subtitle">Attach it to a subject and set the exam date.</p>
+    </div>
+    <a href="{{ url_for('exams') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Exams</span>
+    </a>
+</div>
+
+{% if not subjects %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fa-solid fa-layer-group"></i></div>
+    <h3>You need a subject first</h3>
+    <p>Exams belong to a subject. Add one, then come back here.</p>
+    <a href="{{ url_for('add_subject') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Subject</span>
+    </a>
+</div>
+{% else %}
+<div class="form-card">
+    <form method="POST" action="{{ url_for('add_exam') }}" novalidate>
+        <div class="form-group">
+            <label for="subject_id">Subject</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-layer-group"></i>
+                <select id="subject_id" name="subject_id" required>
+                    <option value="" disabled {% if not subject_id %}selected{% endif %}>Choose a subject</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if subject_id|string == subject.id|string %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-heading"></i>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="e.g. Midterm Exam"
+                    value="{{ title or '' }}"
+                    maxlength="120"
+                    required
+                    autofocus
+                >
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="exam_date">Exam Date</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-calendar"></i>
+                    <input
+                        type="date"
+                        id="exam_date"
+                        name="exam_date"
+                        value="{{ exam_date or '' }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location <span class="optional-tag">optional</span></label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        placeholder="e.g. Room 204"
+                        value="{{ location or '' }}"
+                        maxlength="120"
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes <span class="optional-tag">optional</span></label>
+            <textarea
+                id="notes"
+                name="notes"
+                rows="3"
+                placeholder="Topics to review, materials to bring..."
+            >{{ notes or '' }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i>
+                <span>Add Exam</span>
+            </button>
+            <a href="{{ url_for('exams') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

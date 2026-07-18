@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Progress · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Progress</h1>
+        <p class="page-subtitle">How you're tracking across every subject.</p>
+    </div>
+</div>
+
+<!-- Overview row: big ring + summary stats -->
+<div class="card dashboard-section progress-hero">
+    <div class="progress-ring progress-ring-lg" style="--pct: {{ completion_percentage }};">
+        <div class="progress-ring-inner">
+            <span class="progress-ring-value progress-ring-value-lg">{{ completion_percentage }}%</span>
+            <span class="progress-ring-label">Quest completion</span>
+        </div>
+    </div>
+
+    <div class="progress-hero-stats">
+        <div class="hero-stat">
+            <div class="hero-stat-value">{{ total_assignments }}</div>
+            <div class="hero-stat-label">Total quests</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-value">{{ completed_count }}</div>
+            <div class="hero-stat-label">Cleared</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-value">{{ pending_count }}</div>
+            <div class="hero-stat-label">Pending</div>
+        </div>
+        <div class="hero-stat">
+            <div class="hero-stat-value">{{ total_study_display }}</div>
+            <div class="hero-stat-label">Study Time</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <!-- Left: subject-by-subject breakdown -->
+    <div class="dashboard-col">
+        <div class="card dashboard-section">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-layer-group"></i> Quest progress by world</h3>
+            </div>
+
+            {% if subject_stats %}
+            <div class="subject-stat-list">
+                {% for stat in subject_stats %}
+                <div class="subject-stat-row">
+                    <div class="subject-stat-top">
+                        <span class="subject-stat-name">
+                            <span class="subject-color-dot" style="background-color: {{ stat.color }};"></span>
+                            {{ stat.name }}
+                        </span>
+                        <span class="subject-stat-fraction">
+                            {{ stat.completed_tasks or 0 }}/{{ stat.total_tasks or 0 }}
+                            <span class="text-muted">({{ stat.completion_percent }}%)</span>
+                        </span>
+                    </div>
+                    <div class="progress-bar-track">
+                        <div class="progress-bar-fill" style="width: {{ stat.completion_percent }}%; background-color: {{ stat.color }};"></div>
+                    </div>
+                    <div class="subject-stat-meta">
+                        <i class="fa-solid fa-clock"></i> {{ stat.study_display }} studied
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="section-empty">Add a subject to see its progress here.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Right: weekly study hours chart -->
+    <div class="dashboard-col dashboard-col-narrow">
+        <div class="card dashboard-section">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-chart-column"></i> Study time (last 7 days)</h3>
+            </div>
+
+            <div class="bar-chart">
+                {% for day in weekly_chart %}
+                <div class="bar-col">
+                    <div class="bar-track">
+                        <div
+                            class="bar-fill{% if day.is_today %} bar-fill-today{% endif %}"
+                            style="height: {{ day.height_percent }}%;"
+                            title="{{ day.minutes_display }}"
+                        ></div>
+                    </div>
+                    <span class="bar-label{% if day.is_today %} bar-label-today{% endif %}">{{ day.label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if weekly_chart|sum(attribute='minutes') == 0 %}
+            <p class="section-empty">No study sessions logged this week yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="card dashboard-section">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-list-check"></i> Quest status mix</h3>
+            </div>
+            <div class="progress-breakdown">
+                <div class="progress-stat-row">
+                    <span class="progress-stat-label"><span class="dot dot-success"></span> Completed</span>
+                    <span class="progress-stat-value">{{ completed_count }}</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill progress-bar-success" style="width: {{ (completed_count / total_assignments * 100) if total_assignments else 0 }}%;"></div>
+                </div>
+
+                <div class="progress-stat-row">
+                    <span class="progress-stat-label"><span class="dot dot-warning"></span> In Progress</span>
+                    <span class="progress-stat-value">{{ in_progress_count }}</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill progress-bar-warning" style="width: {{ (in_progress_count / total_assignments * 100) if total_assignments else 0 }}%;"></div>
+                </div>
+
+                <div class="progress-stat-row">
+                    <span class="progress-stat-label"><span class="dot dot-muted"></span> Pending</span>
+                    <span class="progress-stat-value">{{ pending_count }}</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill progress-bar-muted" style="width: {{ (pending_count / total_assignments * 100) if total_assignments else 0 }}%;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

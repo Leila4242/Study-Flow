@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Exam · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Edit Exam</h1>
+        <p class="page-subtitle">Update the details for {{ exam.title }}.</p>
+    </div>
+    <a href="{{ url_for('exams') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Exams</span>
+    </a>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="{{ url_for('edit_exam', exam_id=exam.id) }}" novalidate>
+        {% set current_subject_id = subject_id if subject_id is defined else exam.subject_id %}
+        <div class="form-group">
+            <label for="subject_id">Subject</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-layer-group"></i>
+                <select id="subject_id" name="subject_id" required>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if current_subject_id|string == subject.id|string %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-heading"></i>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value="{{ title if title is defined else exam.title }}"
+                    maxlength="120"
+                    required
+                    autofocus
+                >
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="exam_date">Exam Date</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-calendar"></i>
+                    <input
+                        type="date"
+                        id="exam_date"
+                        name="exam_date"
+                        value="{{ exam_date if exam_date is defined else exam.exam_date }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location <span class="optional-tag">optional</span></label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        value="{{ location if location is defined else (exam.location or '') }}"
+                        maxlength="120"
+                    >
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes <span class="optional-tag">optional</span></label>
+            <textarea
+                id="notes"
+                name="notes"
+                rows="3"
+            >{{ notes if notes is defined else (exam.notes or '') }}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i>
+                <span>Save Changes</span>
+            </button>
+            <a href="{{ url_for('exams') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

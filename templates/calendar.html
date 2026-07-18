@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Calendar</h1>
+        <p class="page-subtitle">A clear overview of assignments, exams, and study sessions.</p>
+    </div>
+    <div class="calendar-legend">
+        <span class="legend-item"><span class="calendar-dot calendar-dot-task"></span> Assignment</span>
+        <span class="legend-item"><span class="calendar-dot calendar-dot-exam"></span> Exam</span>
+        <span class="legend-item"><span class="calendar-dot calendar-dot-study"></span> Study session</span>
+    </div>
+</div>
+
+<div class="card calendar-card">
+    <div class="calendar-nav">
+        <a href="{{ url_for('calendar_view', year=prev_year, month=prev_month) }}" class="icon-btn" aria-label="Previous month">
+            <i class="fa-solid fa-chevron-left"></i>
+        </a>
+        <h2 class="calendar-month-title">{{ month_name }} {{ year }}</h2>
+        <a href="{{ url_for('calendar_view', year=next_year, month=next_month) }}" class="icon-btn" aria-label="Next month">
+            <i class="fa-solid fa-chevron-right"></i>
+        </a>
+        <a href="{{ url_for('calendar_view', year=today_year, month=today_month) }}" class="btn btn-secondary btn-sm calendar-today-btn">Today</a>
+    </div>
+
+    <div class="calendar-weekday-row">
+        {% for label in weekday_labels %}
+        <div class="calendar-weekday">{{ label }}</div>
+        {% endfor %}
+    </div>
+
+    <div class="calendar-grid">
+        {% for week in weeks %}
+            {% for day in week %}
+            <a
+                href="{{ url_for('calendar_view', year=year, month=month, date=day.iso) }}"
+                class="calendar-day{% if not day.in_month %} calendar-day-outside{% endif %}{% if day.is_today %} calendar-day-today{% endif %}{% if day.is_selected %} calendar-day-selected{% endif %}"
+            >
+                <span class="calendar-day-number">{{ day.day_number }}</span>
+                {% if day.events %}
+                <div class="calendar-day-dots">
+                    {% for event in day.events %}
+                    <span class="calendar-dot calendar-dot-{{ event.type }}"></span>
+                    {% endfor %}
+                    {% if day.extra_count %}
+                    <span class="calendar-dot-more">+{{ day.extra_count }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </a>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card dashboard-section calendar-day-panel">
+    <div class="section-header">
+        <h3><i class="fa-solid fa-calendar-day"></i> {{ selected_date_label }}</h3>
+    </div>
+
+    {% if selected_events %}
+    <div class="activity-list">
+        {% for event in selected_events %}
+        <div class="activity-row">
+            <span class="activity-icon calendar-icon-{{ event.type }}">
+                <i class="fa-solid {{ event.icon }}"></i>
+            </span>
+            <div class="activity-body">
+                <div class="activity-text"><strong>{{ event.title }}</strong></div>
+                <div class="activity-time">{{ event.meta }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="section-empty">Nothing scheduled on this day.</p>
+    {% endif %}
+</div>
+{% endblock %}

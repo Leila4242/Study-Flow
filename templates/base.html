@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Study Flow{% endblock %}</title>
+    <meta name="description" content="Study Flow — a personal study management tool for tracking subjects, assignments, exams, and progress.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="sf-body">
+
+    <div class="flash-container" id="flashContainer">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        <i class="fa-solid {{ 'fa-circle-check' if category == 'success' else 'fa-circle-exclamation' }}"></i>
+                        <span>{{ message }}</span>
+                        <button class="flash-close" aria-label="Dismiss"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Topbar navigation replacing sidebar -->
+    <header class="topbar" role="banner">
+        <a href="{{ url_for('dashboard') }}" class="topbar-brand">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Study Flow Logo" class="brand-logo-img">
+            <span class="brand-name">Study Flow</span>
+        </a>
+
+        <button class="icon-btn mobile-menu-toggle" id="menuToggle" aria-label="Toggle menu">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <nav class="topbar-nav" id="topbarNav" aria-label="Primary">
+            <a href="{{ url_for('dashboard') }}" class="nav-link{% if request.endpoint == 'dashboard' %} active{% endif %}">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('subjects') }}" class="nav-link{% if request.endpoint in ['subjects', 'add_subject', 'edit_subject'] %} active{% endif %}">
+                <span>Subjects</span>
+            </a>
+            <a href="{{ url_for('tasks') }}" class="nav-link{% if request.endpoint in ['tasks', 'add_task', 'edit_task'] %} active{% endif %}">
+                <span>Assignments</span>
+            </a>
+            <a href="{{ url_for('exams') }}" class="nav-link{% if request.endpoint in ['exams', 'add_exam', 'edit_exam'] %} active{% endif %}">
+                <span>Exams</span>
+            </a>
+            <a href="{{ url_for('dashboard') }}#progressOverview" class="nav-link">
+                <span>Progress</span>
+            </a>
+            <a href="{{ url_for('calendar_view') }}" class="nav-link{% if request.endpoint == 'calendar_view' %} active{% endif %}">
+                <span>Calendar</span>
+            </a>
+            <!-- Mobile Only links -->
+            <div class="mobile-only-links">
+                <a href="{{ url_for('profile') }}" class="nav-link"><i class="fa-solid fa-user"></i> <span>Profile</span></a>
+                <a href="{{ url_for('logout') }}" class="nav-link nav-link-danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span></a>
+            </div>
+        </nav>
+
+        <div class="topbar-actions">
+            <form action="{{ url_for('tasks') }}" class="topbar-search" method="GET" aria-label="Search">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" name="search" placeholder="Search assignments..." aria-label="Search term" value="{{ search if request.endpoint == 'tasks' else '' }}">
+            </form>
+
+            <button class="icon-btn" id="darkModeToggle" aria-label="Toggle dark mode">
+                <i class="fa-solid fa-moon" aria-hidden="true"></i>
+            </button>
+
+            <a href="{{ url_for('add_task') }}" class="btn btn-register">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <span>Quick Add</span>
+            </a>
+
+            <div class="user-dropdown-container">
+                <a href="{{ url_for('profile') }}" class="user-avatar" title="My Profile" aria-label="Profile">
+                    {%- if current_user -%}
+                        {{ current_user.fullname.split(' ')[0][0] }}{% if current_user.fullname.split(' ')|length > 1 %}{{ current_user.fullname.split(' ')[-1][0] }}{% endif %}
+                    {%- else -%}
+                        ?
+                    {%- endif -%}
+                </a>
+            </div>
+            
+            <a href="{{ url_for('logout') }}" class="icon-btn desktop-logout" title="Log Out" aria-label="Log Out">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </a>
+        </div>
+    </header>
+
+    <div class="nav-overlay" id="sidebarOverlay"></div>
+
+    <main class="page-content" id="mainContent">
+        <div class="page-content-inner" style="max-width: 1400px; margin: 0 auto; width: 100%;">
+            {% block content %}
+            <div class="placeholder-block">
+                <h1>Welcome{% if current_user %}, {{ current_user.fullname.split(' ')[0] }}{% endif %}</h1>
+                <p>Your study record is ready.</p>
+            </div>
+            {% endblock %}
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

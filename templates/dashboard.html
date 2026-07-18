@@ -1,0 +1,302 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard · Study Flow{% endblock %}
+
+{% block content %}
+
+{# ── Page header ── #}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            {%- if current_user -%}
+                {{ current_user.fullname.split(' ')[0] }}'s Record
+            {%- else -%}
+                Dashboard
+            {%- endif -%}
+        </h1>
+        <p class="page-subtitle">{{ today_date if today_date else "Today's standing" }}</p>
+    </div>
+    <a href="{{ url_for('add_task') }}" class="btn btn-primary" id="addTaskBtn">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span>Add Task</span>
+    </a>
+</div>
+
+
+{# ── Stat Row: ledger column layout ── #}
+<div class="stat-grid" role="region" aria-label="Academic standing summary">
+
+    <div class="stat-card" aria-label="Subjects">
+        <span class="stat-label">Subjects</span>
+        <span class="stat-value" id="statSubjects">{{ stats.subject_count }}</span>
+    </div>
+
+    <div class="stat-card stat-card--brass" aria-label="Due today">
+        <span class="stat-label">Due Today</span>
+        <span class="stat-value" id="statDueToday">{{ stats.due_today_tasks }}</span>
+    </div>
+
+    <div class="stat-card stat-card--danger" aria-label="Urgent">
+        <span class="stat-label">Urgent</span>
+        <span class="stat-value" id="statUrgent">{{ stats.overdue_tasks }}</span>
+    </div>
+
+    <div class="stat-card stat-card--success" aria-label="Completed">
+        <span class="stat-label">Completed</span>
+        <span class="stat-value" id="statCompleted">{{ stats.completed_tasks }}</span>
+    </div>
+
+    <div class="stat-card" aria-label="Upcoming exams">
+        <span class="stat-label">Exams</span>
+        <span class="stat-value" id="statExams">{{ stats.upcoming_exam_count }}</span>
+    </div>
+
+</div>
+
+
+{# ── Two-column dashboard grid ── #}
+<div class="dashboard-grid">
+
+    {# ── Left column ── #}
+    <div class="dashboard-col">
+
+        {# Today's Tasks #}
+        <section class="dashboard-card" aria-labelledby="todayTasksHeading">
+            <div class="dashboard-card-header">
+                <h2 id="todayTasksHeading">
+                    <i class="fa-solid fa-calendar-day" aria-hidden="true"></i>
+                    Today's Tasks
+                </h2>
+                <a href="{{ url_for('tasks') }}" class="dashboard-card-link" aria-label="View all assignments">All →</a>
+            </div>
+
+            {% if today_tasks %}
+            <div class="mini-list" role="list">
+                {% for task in today_tasks %}
+                <div class="mini-item" role="listitem">
+                    {# Subject color as a vertical tab — 3px left stroke #}
+                    <span class="mini-item-dot" style="background-color: {{ task.subject_color }}; min-height: 36px;" aria-hidden="true"></span>
+                    <div class="mini-item-body">
+                        <span class="mini-item-title">{{ task.title }}</span>
+                        <span class="mini-item-sub">{{ task.subject_name }}</span>
+                    </div>
+                    <span class="badge badge-{{ 'danger' if task.priority == 'High' else ('warning' if task.priority == 'Medium' else 'muted') }}"
+                          aria-label="Priority: {{ task.priority }}">
+                        {{ task.priority }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty">
+                <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+                <p>No tasks due today.</p>
+            </div>
+            {% endif %}
+        </section>
+
+
+        {# Upcoming Exams #}
+        <section class="dashboard-card" aria-labelledby="upcomingExamsHeading">
+            <div class="dashboard-card-header">
+                <h2 id="upcomingExamsHeading">
+                    <i class="fa-solid fa-file-pen" aria-hidden="true"></i>
+                    Upcoming Exams
+                </h2>
+                <a href="{{ url_for('exams') }}" class="dashboard-card-link" aria-label="View all exams">All →</a>
+            </div>
+
+            {% if upcoming_exams %}
+            <div class="mini-list" role="list">
+                {% for exam in upcoming_exams %}
+                <div class="mini-item" role="listitem">
+                    <span class="mini-item-dot" style="background-color: {{ exam.subject_color }}; min-height: 36px;" aria-hidden="true"></span>
+                    <div class="mini-item-body">
+                        <span class="mini-item-title">{{ exam.title }}</span>
+                        <span class="mini-item-sub">{{ exam.subject_name }}{% if exam.location %} · {{ exam.location }}{% endif %}</span>
+                    </div>
+                    {# Stamped date badge — the key exam signifier #}
+                    <span class="countdown-badge countdown-live {% if exam.days_until == 0 %}countdown-badge-today{% elif exam.days_until and exam.days_until <= 7 %}countdown-badge-soon{% else %}countdown-badge-upcoming{% endif %}"
+                          data-exam-date="{{ exam.exam_date }}"
+                          aria-label="Exam date: {{ exam.exam_date }}">
+                        {{ exam.exam_date }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty">
+                <i class="fa-regular fa-file-circle-check" aria-hidden="true"></i>
+                <p>No exams scheduled.</p>
+                <a href="{{ url_for('add_exam') }}" class="btn btn-primary btn-sm" style="margin-top: 8px;">
+                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    <span>Add Exam</span>
+                </a>
+            </div>
+            {% endif %}
+        </section>
+
+    </div>
+
+
+    {# ── Right column ── #}
+    <div class="dashboard-col">
+
+        {# ★ Progress Overview — SIGNATURE ELEMENT: ledger cells #}
+        <section class="dashboard-card" id="progressOverview" aria-labelledby="progressHeading">
+            <div class="dashboard-card-header">
+                <h2 id="progressHeading">
+                    <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+                    Progress Overview
+                </h2>
+            </div>
+
+            {% if subject_progress %}
+            <div class="progress-list" role="list">
+                {% for subject in subject_progress %}
+                {#
+                    Ledger cells: 10 cells, filled proportionally to subject.percent.
+                    Example: 70% → 7 filled cells + 3 empty.
+                    This is the ONE thing this screen will be remembered by.
+                #}
+                {% set filled_cells = (subject.percent / 10) | round(0, 'floor') | int %}
+
+                <div class="progress-item" role="listitem"
+                     aria-label="{{ subject.name }}: {{ subject.completed_tasks }} of {{ subject.total_tasks }} tasks complete">
+                    <div class="progress-subject-col">
+                        <span class="progress-subject-swatch" style="background-color: {{ subject.color }};" aria-hidden="true"></span>
+                        <span class="progress-subject-name">{{ subject.name }}</span>
+                    </div>
+
+                    {# THE LEDGER CELLS — the signature element #}
+                    <div class="ledger-cells" aria-hidden="true" title="{{ subject.percent | round | int }}% complete">
+                        {% for i in range(10) %}
+                        <span class="ledger-cell {% if i < filled_cells %}filled{% endif %}"></span>
+                        {% endfor %}
+                    </div>
+
+                    <span class="progress-count-col" aria-hidden="true">
+                        {{ subject.completed_tasks }}/{{ subject.total_tasks }}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty">
+                <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                <p>Add a subject to begin tracking progress.</p>
+            </div>
+            {% endif %}
+        </section>
+
+
+        {# Recent Activity — plain ruled log #}
+        <section class="dashboard-card" aria-labelledby="recentActivityHeading">
+            <div class="dashboard-card-header">
+                <h2 id="recentActivityHeading">
+                    <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+                    Recent Activity
+                </h2>
+            </div>
+
+            {% if recent_activity %}
+            <div class="activity-list" role="log" aria-live="polite" aria-label="Recent activity log">
+                {% for item in recent_activity %}
+                <div class="activity-item">
+                    <div class="activity-body">
+                        <span class="activity-text">{{ item.text }}</span>
+                        <span class="activity-time" aria-label="Time: {{ item.created_at }}">{{ item.created_at }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="dashboard-empty">
+                <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                <p>Activity shows up here as you add and complete tasks.</p>
+            </div>
+            {% endif %}
+        </section>
+
+    </div>
+
+</div>
+
+
+{# ── Quick Add Task ── #}
+<section class="dashboard-card" id="quickAddCard" aria-labelledby="quickAddHeading">
+    <div class="dashboard-card-header">
+        <h2 id="quickAddHeading">
+            <i class="fa-solid fa-pen-nib" aria-hidden="true"></i>
+            Quick Add Task
+        </h2>
+    </div>
+
+    {% if not subjects %}
+    <div class="dashboard-empty">
+        <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+        <p>Add a subject first, then you can record a new task here.</p>
+        <a href="{{ url_for('add_subject') }}" class="btn btn-primary btn-sm" style="margin-top: 8px;">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            <span>Add Subject</span>
+        </a>
+    </div>
+    {% else %}
+    <form method="POST" action="{{ url_for('quick_add_task') }}" class="quick-add-form" novalidate aria-label="Quick add task form">
+
+        <div class="form-group">
+            <label for="quickSubjectId">Subject</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                <select id="quickSubjectId" name="subject_id" required aria-required="true">
+                    <option value="" disabled selected>Choose subject</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="quickTitle">Title</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-pencil" aria-hidden="true"></i>
+                <input type="text" id="quickTitle" name="title"
+                       placeholder="e.g. Read Chapter 4"
+                       maxlength="120" required aria-required="true">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="quickDeadline">Deadline</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-calendar" aria-hidden="true"></i>
+                <input type="date" id="quickDeadline" name="deadline"
+                       min="{{ today }}" value="{{ today }}" required aria-required="true">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="quickPriority">Priority</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-flag" aria-hidden="true"></i>
+                <select id="quickPriority" name="priority" required aria-required="true">
+                    {% for p in priorities %}
+                    <option value="{{ p }}" {% if p == 'Medium' %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group quick-add-submit-col">
+            <button type="submit" class="quick-add-submit" id="quickAddSubmitBtn">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                <span>Add Task</span>
+            </button>
+        </div>
+
+    </form>
+    {% endif %}
+</section>
+
+{% endblock %}

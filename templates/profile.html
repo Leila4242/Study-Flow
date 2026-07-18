@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile · Study Flow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Manage your account details.</p>
+    </div>
+</div>
+
+<div class="profile-card">
+    <div class="profile-avatar">
+        {%- if current_user -%}
+            {{ current_user.fullname.split(' ')[0][0] }}{% if current_user.fullname.split(' ')|length > 1 %}{{ current_user.fullname.split(' ')[-1][0] }}{% endif %}
+        {%- else -%}
+            ?
+        {%- endif -%}
+    </div>
+
+    <div class="profile-info">
+        <h2 class="profile-name">{{ current_user.fullname }}</h2>
+        <p class="profile-email"><i class="fa-solid fa-envelope"></i> {{ current_user.email }}</p>
+        <p class="profile-meta">Member since {{ current_user.created_at.split(' ')[0] if current_user.created_at else '' }}</p>
+    </div>
+
+    <div class="profile-actions">
+        <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary">
+            <i class="fa-solid fa-pen"></i>
+            <span>Edit Profile</span>
+        </a>
+        <a href="{{ url_for('change_password') }}" class="btn btn-ghost">
+            <i class="fa-solid fa-lock"></i>
+            <span>Change Password</span>
+        </a>
+    </div>
+</div>
+
+<h2 class="page-title" style="font-size: 18px; margin-bottom: 16px;">Account Overview</h2>
+
+<div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stat-card">
+        <span class="stat-label">Subjects</span>
+        <span class="stat-value">{{ stats.subject_count }}</span>
+    </div>
+
+    <div class="stat-card stat-card--brass">
+        <span class="stat-label">Assignments</span>
+        <span class="stat-value">{{ stats.total_tasks }}</span>
+    </div>
+
+    <div class="stat-card stat-card--success">
+        <span class="stat-label">Completed</span>
+        <span class="stat-value">{{ stats.completed_tasks }}</span>
+    </div>
+
+    <div class="stat-card stat-card--danger">
+        <span class="stat-label">Upcoming Exams</span>
+        <span class="stat-value">{{ stats.upcoming_exam_count }}</span>
+    </div>
+</div>
+{% endblock %}

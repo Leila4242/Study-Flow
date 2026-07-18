@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Assignment · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Edit Assignment</h1>
+        <p class="page-subtitle">Update the details for {{ task.title }}.</p>
+    </div>
+    <a href="{{ url_for('tasks') }}" class="btn btn-secondary">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Back to Assignments</span>
+    </a>
+</div>
+
+<div class="form-card">
+    <form method="POST" action="{{ url_for('edit_task', task_id=task.id) }}" novalidate>
+        {% set current_subject_id = subject_id if subject_id is defined else task.subject_id %}
+        <div class="form-group">
+            <label for="subject_id">Subject</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-layer-group"></i>
+                <select id="subject_id" name="subject_id" required>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if current_subject_id|string == subject.id|string %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="title">Title</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-heading"></i>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value="{{ title if title is defined else task.title }}"
+                    maxlength="120"
+                    required
+                    autofocus
+                >
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description <span class="optional-tag">optional</span></label>
+            <textarea
+                id="description"
+                name="description"
+                rows="3"
+            >{{ description if description is defined else (task.description or '') }}</textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="deadline">Deadline</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-calendar"></i>
+                    <input
+                        type="date"
+                        id="deadline"
+                        name="deadline"
+                        value="{{ deadline if deadline is defined else task.deadline }}"
+                        min="{{ today }}"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="priority">Priority</label>
+                <div class="input-wrap">
+                    <i class="fa-solid fa-flag"></i>
+                    <select id="priority" name="priority" required>
+                        {% set current_priority = priority if priority is defined else task.priority %}
+                        {% for p in priorities %}
+                        <option value="{{ p }}" {% if current_priority == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="status">Status</label>
+            <div class="input-wrap">
+                <i class="fa-solid fa-spinner"></i>
+                <select id="status" name="status" required>
+                    {% set current_status = status if status is defined else task.status %}
+                    {% for s in statuses %}
+                    <option value="{{ s }}" {% if current_status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i>
+                <span>Save Changes</span>
+            </button>
+            <a href="{{ url_for('tasks') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

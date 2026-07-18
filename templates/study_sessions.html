@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Study Log · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Study Log</h1>
+        <p class="page-subtitle">Every study session you've logged, most recent first.</p>
+    </div>
+    <a href="{{ url_for('add_study_session') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Log Study Time</span>
+    </a>
+</div>
+
+<div class="total-hours-banner">
+    <div class="total-hours-icon"><i class="fa-solid fa-clock"></i></div>
+    <div>
+        <div class="total-hours-value">{{ total_display }}</div>
+        <div class="total-hours-label">Total study time logged</div>
+    </div>
+</div>
+
+{% if sessions %}
+<div class="session-list">
+    {% for item in sessions %}
+    <div class="session-card">
+        <div class="session-card-accent" style="background-color: {{ item.subject_color }};"></div>
+
+        <div class="session-card-main">
+            <div class="session-card-top">
+                <span class="badge" style="background-color: {{ item.subject_color }}22; color: {{ item.subject_color }};">
+                    {{ item.subject_name }}
+                </span>
+                <span class="badge badge-muted">
+                    <i class="fa-solid fa-calendar"></i> {{ item.study_date }}
+                </span>
+                <span class="badge badge-success">
+                    <i class="fa-solid fa-clock"></i> {{ item.duration_display }}
+                </span>
+            </div>
+            {% if item.notes %}
+            <p class="task-description">{{ item.notes }}</p>
+            {% endif %}
+        </div>
+
+        <div class="task-card-actions">
+            <a href="{{ url_for('edit_study_session', session_id=item.id) }}" class="icon-btn" aria-label="Edit session">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="POST" action="{{ url_for('delete_study_session_route', session_id=item.id) }}" class="delete-form">
+                <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete session"
+                    data-confirm="Delete this study session? This can't be undone.">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fa-solid fa-clock"></i></div>
+    <h3>No study sessions yet</h3>
+    <p>Log your first session to start tracking your study hours.</p>
+    <a href="{{ url_for('add_study_session') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Log Study Time</span>
+    </a>
+</div>
+{% endif %}
+{% endblock %}

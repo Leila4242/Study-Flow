@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Subjects · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Subjects</h1>
+        <p class="page-subtitle">Organize your study areas with clear, modern cards.</p>
+    </div>
+    <a href="{{ url_for('add_subject') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Subject</span>
+    </a>
+</div>
+
+{% if subjects %}
+<div class="subject-grid">
+    {% for subject in subjects %}
+    <div class="subject-card" style="--subject-color: {{ subject.color }};">
+        <div class="subject-card-top">
+            <div class="subject-card-title-group">
+                <div class="subject-color-dot" style="background-color: {{ subject.color }};"></div>
+                <div>
+                    <h3 class="subject-name">{{ subject.name }}</h3>
+                    <p class="subject-teacher">
+                        {% if subject.teacher %}
+                            <i class="fa-solid fa-chalkboard-user"></i> {{ subject.teacher }}
+                        {% else %}
+                            <span class="text-muted">No teacher listed</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="subject-card-footer">
+            <span class="badge badge-muted">
+                <i class="fa-solid fa-list-check"></i>
+                {{ subject.task_count }} assignment{{ 's' if subject.task_count != 1 else '' }}
+            </span>
+            <div class="subject-card-menu">
+                <a href="{{ url_for('edit_subject', subject_id=subject.id) }}" class="icon-btn" aria-label="Edit subject">
+                    <i class="fa-solid fa-pen"></i>
+                </a>
+                <form method="POST" action="{{ url_for('delete_subject_route', subject_id=subject.id) }}" class="delete-form">
+                    <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete subject"
+                        data-confirm="Delete &ldquo;{{ subject.name }}&rdquo;? This also removes its tasks, exams, and study sessions.">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fa-solid fa-layer-group"></i></div>
+    <h3>No subjects yet</h3>
+    <p>Add your first subject to start organizing assignments and exams.</p>
+    <a href="{{ url_for('add_subject') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Subject</span>
+    </a>
+</div>
+{% endif %}
+{% endblock %}

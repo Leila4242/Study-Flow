@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}Assignments · Study Planner{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Assignments</h1>
+        <p class="page-subtitle">Every quest, with its urgency and current status in one lane.</p>
+    </div>
+    <a href="{{ url_for('add_task') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Assignment</span>
+    </a>
+</div>
+
+<div class="toolbar">
+    <form method="GET" action="{{ url_for('tasks') }}" class="toolbar-search" id="taskSearchForm">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+            type="text"
+            name="search"
+            id="taskSearchInput"
+            placeholder="Search assignments..."
+            value="{{ search or '' }}"
+            autocomplete="off"
+        >
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <input type="hidden" name="priority" value="{{ priority_filter }}">
+        {% if search %}
+        <a href="{{ url_for('tasks', status=status_filter, priority=priority_filter) }}" class="toolbar-clear" aria-label="Clear search">
+            <i class="fa-solid fa-xmark"></i>
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="filter-row">
+    <span class="filter-label">Status</span>
+    <div class="filter-chips">
+        {% for option in ["All"] + statuses %}
+        <a href="{{ url_for('tasks', search=search, status=option, priority=priority_filter) }}"
+           class="filter-chip{% if status_filter == option %} active{% endif %}">{{ option }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="filter-row">
+    <span class="filter-label">Rarity</span>
+    <div class="filter-chips">
+        {% for option in ["All"] + priorities %}
+        {% set chip_label = 'Urgent' if option == 'High' else ('Rare' if option == 'Medium' else ('Common' if option == 'Low' else option)) %}
+        <a href="{{ url_for('tasks', search=search, status=status_filter, priority=option) }}"
+           class="filter-chip{% if priority_filter == option %} active{% endif %}">{{ chip_label }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+{% if tasks %}
+<div class="task-list">
+    {% for task in tasks %}
+    <div class="task-card">
+        <div class="task-card-accent" style="background-color: {{ task.subject_color }};"></div>
+
+        <div class="task-card-main">
+            <div class="task-card-top">
+                <span class="badge" style="background-color: {{ task.subject_color }}22; color: {{ task.subject_color }};">
+                    {{ task.subject_name }}
+                </span>
+
+                <span class="deadline-tag deadline-tag-{{ task.deadline_status }}">
+                    <i class="fa-solid fa-calendar"></i>
+                    {{ task.deadline_display }}
+                </span>
+            </div>
+
+            <h3 class="task-title">{{ task.title }}</h3>
+            {% if task.description %}
+            <p class="task-description">{{ task.description }}</p>
+            {% endif %}
+
+            <div class="task-card-bottom">
+                {% set rarity_label = 'Urgent' if task.priority == 'High' else ('Rare' if task.priority == 'Medium' else 'Common') %}
+                <span class="badge badge-{{ 'danger' if task.priority == 'High' else ('warning' if task.priority == 'Medium' else 'muted') }}">
+                    <i class="fa-solid fa-flag"></i> {{ rarity_label }}
+                </span>
+
+                <form method="POST" action="{{ url_for('update_task_status_route', task_id=task.id) }}" class="status-form">
+                    <select name="status" class="status-select status-select-{{ task.status|lower|replace(' ', '-') }}" onchange="this.form.submit()">
+                        {% for s in statuses %}
+                        <option value="{{ s }}" {% if task.status == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+        </div>
+
+        <div class="task-card-actions">
+            <a href="{{ url_for('edit_task', task_id=task.id) }}" class="icon-btn" aria-label="Edit assignment">
+                <i class="fa-solid fa-pen"></i>
+            </a>
+            <form method="POST" action="{{ url_for('delete_task_route', task_id=task.id) }}" class="delete-form">
+                <button type="submit" class="icon-btn icon-btn-danger" aria-label="Delete assignment"
+                    data-confirm="Delete &ldquo;{{ task.title }}&rdquo;? This can't be undone.">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon"><i class="fa-solid fa-list-check"></i></div>
+    <h3>No quests found</h3>
+    <p>
+        {% if search or status_filter != "All" or priority_filter != "All" %}
+            Nothing matches your current search or filters.
+        {% else %}
+            Add your first quest and begin tracking its deadline.
+        {% endif %}
+    </p>
+    <a href="{{ url_for('add_task') }}" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Assignment</span>
+    </a>
+</div>
+{% endif %}
+{% endblock %}
